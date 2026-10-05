@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0b1c2c" />
+  <title>Meadows Run · Beaverton Toyota × Mt. Hood Meadows</title>
+  <style>
+    :root {
+      --bg: #07131f;
+      --bg2: #0b1c2c;
+      --ink: #f0f7ff;
+      --muted: #9bb4c9;
+      --ice: #7dd3fc;
+      --snow: #e8f4ff;
+      --toyota: #eb0a1e;
+      --gold: #fbbf24;
+      --green: #34d399;
+      --danger: #fb7185;
+      --card: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.14);
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; height: 100%;
+      background:
+        radial-gradient(110% 70% at 50% -5%, #1e4a6e 0%, var(--bg2) 42%, var(--bg) 100%);
+      color: var(--ink);
+      font-family: var(--font);
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+    #app {
+      height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: max(12px, env(safe-area-inset-top, 0px)) 16px 8px;
+      gap: 8px;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+    .brand {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .brand strong { color: var(--ice); font-weight: 700; }
+    .hud {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .pill {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 9px;
+      backdrop-filter: blur(8px);
+    }
+    .pill span { color: var(--ice); }
+    .pill.hurt {
+      border-color: rgba(251, 113, 133, 0.85);
+      box-shadow: 0 0 0 2px rgba(251, 113, 133, 0.35);
+      animation: pill-hurt 0.45s ease;
+    }
+    .pill.hurt span { color: #fb7185; }
+    button.pill-btn {
+      cursor: pointer;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    button.pill-btn span { color: var(--ice); }
+    @keyframes pill-hurt {
+      0%, 100% { transform: scale(1); }
+      30% { transform: scale(1.12); }
+      55% { transform: scale(0.96); }
+    }
+    #stage-wrap {
+      flex: 1;
+      position: relative;
+      margin: 0 12px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45), inset 0 0 80px rgba(125,211,252,0.08);
+      background: linear-gradient(180deg, #9ec9e8 0%, #d7ebf8 35%, #f4f9fd 100%);
+    }
+    #stage-wrap.shake { animation: shake 0.35s ease; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(3px); }
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 18px calc(20px + var(--safe-b));
+      text-align: center;
+      background:
+        linear-gradient(180deg, rgba(7,19,31,0.55), rgba(7,19,31,0.82)),
+        radial-gradient(80% 60% at 50% 20%, rgba(125,211,252,0.18), transparent 60%);
+      backdrop-filter: blur(6px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+    .overlay.hidden { display: none; }
+    .badge {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.7rem, 6vw, 2.2rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    h1 em { font-style: normal; color: var(--ice); }
+    .lede {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 34ch;
+    }
+    .howto {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 340px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .howto div {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+    }
+    .howto b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+    .howto b.howto-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 22px;
+    }
+    .howto-toyota {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+    }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #061018;
+      background: linear-gradient(180deg, #e8f7ff, #7dd3fc);
+      box-shadow: 0 10px 24px rgba(125,211,252,0.25);
+      min-width: 160px;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: scale(0.97); }
+    .btn.secondary {
+      margin-top: 10px;
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    .score-big {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: var(--ice);
+      line-height: 1;
+      margin: 4px 0 8px;
+    }
+    .score-label { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+    .fine {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 14px;
+      max-width: 36ch;
+      line-height: 1.4;
+    }
+    .lose-banner {
+      color: var(--ink);
+      font-size: 14px;
+      margin-bottom: 8px;
+      max-width: 32ch;
+      line-height: 1.4;
+    }
+    footer {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      padding: 8px 14px calc(10px + var(--safe-b));
+      line-height: 1.4;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+      #stage-wrap.shake { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">Beaverton Toyota · <strong>Meadows Run</strong></div>
+      <div class="hud">
+        <div class="pill">Lv <span id="levelEl">1</span></div>
+        <div class="pill">Score <span id="scoreEl">0</span></div>
+        <div class="pill">Run <span id="runEl">0</span>%</div>
+        <div class="pill">Lives <span id="livesEl">3</span></div>
+        <button type="button" class="pill pill-btn" id="btn-mute" title="Mute / unmute" aria-label="Mute sound">🔊</button>
+      </div>
+    </header>
+
+    <div id="stage-wrap">
+      <canvas id="game" width="400" height="640"></canvas>
+
+      <div id="screen-start" class="overlay">
+        <div class="badge">Mt. Hood Meadows lift ticket promo</div>
+        <h1>Meadows <em>Run</em></h1>
+        <p class="lede">Ski the run top to bottom. Grab Toyota badges, hit jumps, dodge trees and other skiers. One yeti per level lobs snowballs — 3 crashes and you’re out. Clear the run to level up.</p>
+        <div class="howto" aria-hidden="true">
+          <div><b>⬅ ➡</b>Steer left / right</div>
+          <div><b>🏔</b>Finish the run</div>
+          <div><b class="howto-icon"><img class="howto-toyota" src="toyota-badge-96.png" width="28" height="28" alt="Toyota badge" /></b>Toyota = points</div>
+          <div><b>yeti</b>1 yeti / level · dodge snowballs</div>
+        </div>
+        <button type="button" class="btn" id="btn-start">Play</button>
+        <p class="fine">Arrows / A-D or drag · sound on Play · same Toyota badge as Halloween</p>
+      </div>
+
+      <div id="screen-end" class="overlay hidden">
+        <div class="badge" id="end-badge">Run over</div>
+        <div class="score-label">Your score</div>
+        <div class="score-big" id="finalScore">0</div>
+        <div id="resultMsg" class="lose-banner">Nice try — hit Play again for another run.</div>
+        <button type="button" class="btn" id="btn-again">Play again</button>
+        <p class="fine">Promo game prototype · Beaverton Toyota × Mt. Hood Meadows</p>
+      </div>
+    </div>
+
+    <footer>
+      Beaverton Toyota · 4300 SW Murray Blvd · 503-626-7200 · Meadows Run prototype
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const MAX_HITS = 3;
+      const HIT_IFRAMES = 2.0; // long enough to ski clear of a tree/cluster
+      const BASE_SPEED = 95; // slower level-1 open
+      const SPEED_PER_LEVEL = 0.10; // gentler ramp each clear
+      const RUN_BASE = 4200; // world distance per level
+      const RUN_PER_LEVEL = 500;
+      const TOYOTA_PTS = 40;
+      const JUMP_PTS = 60;
+      const FINISH_BONUS = 200;
+      const NEAR_MISS_PTS = 15;
+
+      const TOYOTA_SRC = "toyota-badge-96.png";
+      const TOYOTA_DATA = "data:image/png;base64,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";
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const stageWrap = document.getElementById("stage-wrap");
+      const scoreEl = document.getElementById("scoreEl");
+      const levelEl = document.getElementById("levelEl");
+      const livesEl = document.getElementById("livesEl");
+      const runEl = document.getElementById("runEl");
+      const screenStart = document.getElementById("screen-start");
+      const screenEnd = document.getElementById("screen-end");
+      const finalScoreEl = document.getElementById("finalScore");
+      const resultMsg = document.getElementById("resultMsg");
+      const endBadge = document.getElementById("end-badge");
+
+      let W = 400, H = 640, dpr = 1;
+      let running = false;
+      let lastT = 0;
+      let score = 0;
+      let level = 1;
+      let crashes = 0;
+      let hitIFrames = 0;
+      let hitFlash = 0;
+      let progress = 0; // 0..runLength
+      let runLength = RUN_BASE;
+      let leveling = false;
+      let levelFlash = 0;
+      let finishHold = 0;
+
+      const keys = { left: false, right: false };
+      let pointerX = null;
+      let pointerActive = false;
+
+      const player = {
+        x: 0.5, // 0..1 lane fraction
+        vx: 0,
+        tilt: 0,       // body lean (-1..1-ish)
+        skiAngle: 0,   // ski heading in radians (0 = down-slope)
+        air: 0,
+        hurt: 0,
+        w: 28,
+        h: 42
+      };
+
+      let entities = [];
+      let particles = [];
+      let floatTexts = [];
+      let snow = [];
+      let trail = [];
+      let spawnAcc = 0;
+      let treeClusterCooldown = 0;
+      let sceneryOff = 0;
+      let yetiSpawned = false;
+      let wasAirborne = false;
+      let audioMuted = false;
+
+      // —— Web Audio (procedural; unlocks on Play) ——
+      const AudioFX = (() => {
+        let ctx = null;
+        let master = null;
+        let musicGain = null;
+        let sfxGain = null;
+        let skiGain = null;
+        let skiFilter = null;
+        let skiNoise = null;
+        let skiStarted = false;
+        let bellsTimer = null;
+        let unlocked = false;
+
+        function ensure() {
+          if (ctx) return ctx;
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          ctx = new AC();
+          master = ctx.createGain();
+          master.gain.value = audioMuted ? 0 : 0.85;
+          master.connect(ctx.destination);
+
+          musicGain = ctx.createGain();
+          musicGain.gain.value = 0.22;
+          musicGain.connect(master);
+
+          sfxGain = ctx.createGain();
+          sfxGain.gain.value = 0.7;
+          sfxGain.connect(master);
+
+          skiGain = ctx.createGain();
+          skiGain.gain.value = 0;
+          skiFilter = ctx.createBiquadFilter();
+          skiFilter.type = "bandpass";
+          skiFilter.frequency.value = 900;
+          skiFilter.Q.value = 0.8;
+          skiFilter.connect(skiGain);
+          skiGain.connect(master);
+
+          return ctx;
+        }
+
+        function unlock() {
+          const c = ensure();
+          if (!c) return;
+          if (c.state === "suspended") c.resume();
+          unlocked = true;
+          startSkiLoop();
+          startBells();
+          setMuted(audioMuted);
+        }
+
+        function setMuted(m) {
+          audioMuted = !!m;
+          if (master) {
+            const c = ctx;
+            const t = c ? c.currentTime : 0;
+            master.gain.cancelScheduledValues(t);
+            master.gain.setTargetAtTime(audioMuted ? 0 : 0.85, t, 0.05);
+          }
+        }
+
+        function noiseBuffer(seconds) {
+          const c = ensure();
+          const len = Math.floor(c.sampleRate * seconds);
+          const buf = c.createBuffer(1, len, c.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+          return buf;
+        }
+
+        function startSkiLoop() {
+          const c = ensure();
+          if (!c || skiStarted) return;
+          skiStarted = true;
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(1.5);
+          src.loop = true;
+          const hp = c.createBiquadFilter();
+          hp.type = "highpass";
+          hp.frequency.value = 200;
+          src.connect(hp);
+          hp.connect(skiFilter);
+          src.start();
+          skiNoise = src;
+        }
+
+        function updateSki(opts) {
+          // opts: { onSnow, speedNorm 0..1, turn 0..1, muted run }
+          const c = ensure();
+          if (!c || !skiGain) return;
+          const t = c.currentTime;
+          const on = opts.onSnow && opts.running && !audioMuted;
+          const base = on ? (0.035 + opts.speedNorm * 0.07) : 0;
+          const carve = on ? opts.turn * 0.09 : 0;
+          const target = Math.min(0.2, base + carve);
+          skiGain.gain.setTargetAtTime(target, t, 0.08);
+          // straight = softer hiss ~700Hz; carve = brighter scrape
+          const freq = 650 + opts.speedNorm * 350 + opts.turn * 1400;
+          skiFilter.frequency.setTargetAtTime(freq, t, 0.06);
+          skiFilter.Q.setTargetAtTime(0.6 + opts.turn * 2.2, t, 0.06);
+        }
+
+        function stopContinuous() {
+          const c = ensure();
+          if (!c) return;
+          const t = c.currentTime;
+          if (skiGain) skiGain.gain.setTargetAtTime(0, t, 0.1);
+          if (bellsTimer) {
+            clearInterval(bellsTimer);
+            bellsTimer = null;
+          }
+        }
+
+        function envGain(dest, peak, attack, hold, release) {
+          const c = ensure();
+          const g = c.createGain();
+          const t = c.currentTime;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), t + attack);
+          g.gain.setValueAtTime(Math.max(0.0001, peak), t + attack + hold);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + release);
+          g.connect(dest);
+          return g;
+        }
+
+        function playBell(when, pan) {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = when || c.currentTime;
+          const freqs = [2093, 2637, 3136, 4186]; // bright jingle cluster
+          const f = freqs[(Math.random() * freqs.length) | 0] * (0.98 + Math.random() * 0.04);
+          const o = c.createOscillator();
+          o.type = "sine";
+          o.frequency.setValueAtTime(f, t);
+          const o2 = c.createOscillator();
+          o2.type = "triangle";
+          o2.frequency.setValueAtTime(f * 2.01, t);
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.12, t + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35 + Math.random() * 0.2);
+          const filter = c.createBiquadFilter();
+          filter.type = "highpass";
+          filter.frequency.value = 1200;
+          const panner = c.createStereoPanner ? c.createStereoPanner() : null;
+          o.connect(filter);
+          o2.connect(filter);
+          filter.connect(g);
+          if (panner) {
+            panner.pan.setValueAtTime(pan != null ? pan : (Math.random() * 1.4 - 0.7), t);
+            g.connect(panner);
+            panner.connect(musicGain);
+          } else {
+            g.connect(musicGain);
+          }
+          o.start(t);
+          o2.start(t);
+          o.stop(t + 0.6);
+          o2.stop(t + 0.6);
+        }
+
+        function startBells() {
+          const c = ensure();
+          if (!c || bellsTimer) return;
+          // soft periodic sleigh-bell bed
+          const tick = () => {
+            if (!unlocked || !running || audioMuted) return;
+            const n = 2 + ((Math.random() * 3) | 0);
+            for (let i = 0; i < n; i++) {
+              playBell(c.currentTime + i * 0.05 + Math.random() * 0.04, Math.random() * 1.2 - 0.6);
+            }
+          };
+          tick();
+          bellsTimer = setInterval(tick, 900 + Math.random() * 400);
+          // refresh interval jitter occasionally
+        }
+
+        function restartBells() {
+          if (bellsTimer) {
+            clearInterval(bellsTimer);
+            bellsTimer = null;
+          }
+          if (unlocked && running) startBells();
+        }
+
+        // long mournful howl — yeti warning
+        function yetiHowl() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          const freqs = [110, 146, 98];
+          freqs.forEach((base, i) => {
+            const o = c.createOscillator();
+            o.type = i === 1 ? "sawtooth" : "sine";
+            o.frequency.setValueAtTime(base, t);
+            o.frequency.linearRampToValueAtTime(base * 0.72, t + 1.4);
+            o.frequency.linearRampToValueAtTime(base * 0.55, t + 2.2);
+            const lfo = c.createOscillator();
+            lfo.frequency.value = 4.5 + i;
+            const lfoG = c.createGain();
+            lfoG.gain.value = 12 + i * 4;
+            lfo.connect(lfoG);
+            lfoG.connect(o.frequency);
+            const filter = c.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(600, t);
+            filter.frequency.linearRampToValueAtTime(280, t + 2.0);
+            const g = c.createGain();
+            const peak = 0.16 / (i + 1);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(peak, t + 0.25);
+            g.gain.setValueAtTime(peak * 0.85, t + 1.1);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+            o.connect(filter);
+            filter.connect(g);
+            g.connect(sfxGain);
+            o.start(t);
+            lfo.start(t);
+            o.stop(t + 2.5);
+            lfo.stop(t + 2.5);
+          });
+          // airy noise layer
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(2.5);
+          const bp = c.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.value = 400;
+          bp.Q.value = 0.5;
+          const ng = c.createGain();
+          ng.gain.setValueAtTime(0.0001, t);
+          ng.gain.exponentialRampToValueAtTime(0.08, t + 0.3);
+          ng.gain.exponentialRampToValueAtTime(0.0001, t + 2.3);
+          src.connect(bp);
+          bp.connect(ng);
+          ng.connect(sfxGain);
+          src.start(t);
+          src.stop(t + 2.5);
+        }
+
+        // short guttural growl on throw
+        function yetiGrowl() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          const o = c.createOscillator();
+          o.type = "sawtooth";
+          o.frequency.setValueAtTime(85, t);
+          o.frequency.exponentialRampToValueAtTime(55, t + 0.28);
+          const o2 = c.createOscillator();
+          o2.type = "square";
+          o2.frequency.setValueAtTime(42, t);
+          const filter = c.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.setValueAtTime(500, t);
+          filter.frequency.exponentialRampToValueAtTime(120, t + 0.3);
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(0.4);
+          const ng = c.createGain();
+          ng.gain.setValueAtTime(0.12, t);
+          ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+          o.connect(filter);
+          o2.connect(filter);
+          filter.connect(g);
+          g.connect(sfxGain);
+          src.connect(ng);
+          ng.connect(sfxGain);
+          o.start(t);
+          o2.start(t);
+          src.start(t);
+          o.stop(t + 0.4);
+          o2.stop(t + 0.4);
+          src.stop(t + 0.4);
+        }
+
+        function skiJump() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          // whoosh
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(0.5);
+          const bp = c.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.setValueAtTime(400, t);
+          bp.frequency.exponentialRampToValueAtTime(2200, t + 0.18);
+          bp.Q.value = 1.2;
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.2, t + 0.04);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(sfxGain);
+          src.start(t);
+          src.stop(t + 0.45);
+          // soft spring tone
+          const o = c.createOscillator();
+          o.type = "sine";
+          o.frequency.setValueAtTime(320, t);
+          o.frequency.exponentialRampToValueAtTime(520, t + 0.15);
+          const og = c.createGain();
+          og.gain.setValueAtTime(0.0001, t);
+          og.gain.exponentialRampToValueAtTime(0.06, t + 0.05);
+          og.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+          o.connect(og);
+          og.connect(sfxGain);
+          o.start(t);
+          o.stop(t + 0.4);
+        }
+
+        function skiLand() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(0.25);
+          const lp = c.createBiquadFilter();
+          lp.type = "lowpass";
+          lp.frequency.value = 800;
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.18, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+          src.connect(lp);
+          lp.connect(g);
+          g.connect(sfxGain);
+          src.start(t);
+          src.stop(t + 0.2);
+          const o = c.createOscillator();
+          o.type = "triangle";
+          o.frequency.setValueAtTime(90, t);
+          o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+          const og = c.createGain();
+          og.gain.setValueAtTime(0.1, t);
+          og.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          o.connect(og);
+          og.connect(sfxGain);
+          o.start(t);
+          o.stop(t + 0.18);
+        }
+
+        function crash() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          const src = c.createBufferSource();
+          src.buffer = noiseBuffer(0.35);
+          const g = c.createGain();
+          g.gain.setValueAtTime(0.25, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+          const bp = c.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.value = 300;
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(sfxGain);
+          src.start(t);
+          src.stop(t + 0.35);
+        }
+
+        function pickup() {
+          const c = ensure();
+          if (!c || !unlocked) return;
+          const t = c.currentTime;
+          [523, 659, 784].forEach((f, i) => {
+            const o = c.createOscillator();
+            o.type = "sine";
+            o.frequency.value = f;
+            const g = c.createGain();
+            const tt = t + i * 0.04;
+            g.gain.setValueAtTime(0.0001, tt);
+            g.gain.exponentialRampToValueAtTime(0.07, tt + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.2);
+            o.connect(g);
+            g.connect(sfxGain);
+            o.start(tt);
+            o.stop(tt + 0.22);
+          });
+        }
+
+        return {
+          unlock,
+          setMuted,
+          updateSki,
+          stopContinuous,
+          restartBells,
+          yetiHowl,
+          yetiGrowl,
+          skiJump,
+          skiLand,
+          crash,
+          pickup,
+          get muted() { return audioMuted; }
+        };
+      })();
+
+      const toyotaImg = new Image();
+      let toyotaReady = false;
+      toyotaImg.onload = () => { toyotaReady = true; };
+      toyotaImg.onerror = () => {
+        toyotaImg.src = TOYOTA_DATA;
+      };
+      toyotaImg.src = TOYOTA_SRC;
+
+      function rand(a, b) { return a + Math.random() * (b - a); }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+      function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+      function levelMul() { return 1 + (level - 1) * SPEED_PER_LEVEL; }
+      function scrollSpeed() { return BASE_SPEED * levelMul() * (player.air > 0 ? 1.15 : 1); }
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        W = Math.max(280, Math.floor(rect.width));
+        H = Math.max(400, Math.floor(rect.height));
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function syncHud() {
+        scoreEl.textContent = String(score);
+        levelEl.textContent = String(level);
+        livesEl.textContent = String(Math.max(0, MAX_HITS - crashes));
+        const pct = clamp(Math.floor((progress / runLength) * 100), 0, 100);
+        runEl.textContent = String(pct);
+      }
+
+      function floatText(x, y, text, color) {
+        floatTexts.push({ x, y, text, color, life: 0.9, vy: -55 });
+      }
+
+      function burst(x, y, color, n = 10, opts = {}) {
+        for (let i = 0; i < n; i++) {
+          particles.push({
+            x, y,
+            vx: rand(-(opts.spread || 120), opts.spread || 120),
+            vy: rand(-(opts.up || 160), opts.down || 40),
+            life: rand(opts.lifeMin || 0.25, opts.lifeMax || 0.7),
+            color,
+            s: rand(opts.sMin || 2, opts.sMax || 5)
+          });
+        }
+      }
+
+      function initSnow() {
+        snow = [];
+        for (let i = 0; i < 60; i++) {
+          snow.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            s: rand(1, 2.8),
+            sp: rand(30, 90),
+            drift: rand(-20, 20)
+          });
+        }
+      }
+
+      function laneX(t) {
+        // course width shrinks slightly with level for tension
+        const margin = 36 + Math.min(18, level * 2);
+        return margin + t * (W - margin * 2);
+      }
+
+      function resetRunState(keepScore) {
+        if (!keepScore) score = 0;
+        progress = 0;
+        runLength = RUN_BASE + (level - 1) * RUN_PER_LEVEL;
+        entities = [];
+        particles = [];
+        floatTexts = [];
+        trail = [];
+        spawnAcc = 0;
+        treeClusterCooldown = 0.4;
+        sceneryOff = 0;
+        yetiSpawned = false;
+        player.x = 0.5;
+        player.vx = 0;
+        player.tilt = 0;
+        player.skiAngle = 0;
+        player.air = 0;
+        player.hurt = 0;
+        hitIFrames = 0;
+        hitFlash = 0;
+        leveling = false;
+        finishHold = 0;
+        // seed opening clear zone
+        for (let i = 0; i < 4; i++) spawnAhead(0.55 + i * 0.2, true);
+      }
+
+      function fullReset() {
+        level = 1;
+        crashes = 0;
+        leveling = false;
+        levelFlash = 0;
+        resetRunState(false);
+        syncHud();
+      }
+
+      function spawnAhead(depthFrac, gentle) {
+        // depthFrac 0 near player spawn band, 1 far
+        const y = -40 - depthFrac * H * 1.2 - rand(0, 80);
+        const mul = levelMul();
+        const roll = Math.random();
+
+        if (gentle) {
+          if (roll < 0.45) spawnToyota(y);
+          else if (roll < 0.7) spawnJump(y);
+          else spawnTree(y, false);
+          return;
+        }
+
+        if (treeClusterCooldown <= 0 && roll < 0.18 + level * 0.015) {
+          spawnTreeCluster(y);
+          treeClusterCooldown = rand(1.6, 2.8) / mul;
+        } else if (roll < 0.34) {
+          spawnRival(y);
+        } else if (roll < 0.5) {
+          spawnJump(y);
+        } else if (roll < 0.68) {
+          spawnToyota(y);
+        } else {
+          spawnTree(y, Math.random() < 0.35);
+        }
+      }
+
+      function spawnTree(y, wide) {
+        const t = rand(0.08, 0.92);
+        entities.push({
+          type: "tree",
+          x: t,
+          y,
+          r: wide ? rand(22, 30) : rand(14, 20),
+          hit: true,
+          group: false
+        });
+      }
+
+      function spawnTreeCluster(y) {
+        // split the course: gap somewhere
+        const gap = rand(0.28, 0.72);
+        const gapW = rand(0.16, 0.24);
+        const leftCount = 2 + (Math.random() * 2 | 0);
+        const rightCount = 2 + (Math.random() * 2 | 0);
+        for (let i = 0; i < leftCount; i++) {
+          const t = clamp(rand(0.05, gap - gapW / 2 - 0.02), 0.05, 0.95);
+          entities.push({ type: "tree", x: t, y: y - i * 18, r: rand(15, 24), hit: true, group: true });
+        }
+        for (let i = 0; i < rightCount; i++) {
+          const t = clamp(rand(gap + gapW / 2 + 0.02, 0.95), 0.05, 0.95);
+          entities.push({ type: "tree", x: t, y: y - i * 18 - 8, r: rand(15, 24), hit: true, group: true });
+        }
+        // optional toyota in the gap
+        if (Math.random() < 0.55) {
+          entities.push({ type: "toyota", x: gap, y: y - 30, r: 16, hit: false, value: TOYOTA_PTS, rot: 0, spin: rand(-1, 1) });
+        }
+      }
+
+      function spawnRival(y) {
+        entities.push({
+          type: "rival",
+          x: rand(0.15, 0.85),
+          y,
+          r: 18,
+          hit: true,
+          vx: rand(-0.12, 0.12),
+          phase: rand(0, Math.PI * 2),
+          color: pick(["#2563eb", "#7c3aed", "#0d9488", "#c2410c", "#4338ca"])
+        });
+      }
+
+      function spawnJump(y) {
+        entities.push({
+          type: "jump",
+          x: rand(0.2, 0.8),
+          y,
+          r: 28,
+          hit: false,
+          used: false,
+          value: JUMP_PTS
+        });
+      }
+
+      function spawnToyota(y) {
+        entities.push({
+          type: "toyota",
+          x: rand(0.12, 0.88),
+          y,
+          r: 16,
+          hit: false,
+          value: TOYOTA_PTS,
+          rot: rand(-0.2, 0.2),
+          spin: rand(-0.8, 0.8)
+        });
+      }
+
+      // Exactly one yeti per level — mid-run ambush that lob snowballs at the skier
+      function spawnYeti() {
+        if (yetiSpawned) return;
+        yetiSpawned = true;
+        const side = Math.random() < 0.5 ? 0.18 : 0.82;
+        entities.push({
+          type: "yeti",
+          x: side,
+          y: -120,
+          r: 36,
+          hit: true,
+          phase: rand(0, Math.PI * 2),
+          throwCd: 0.55, // first lob soon after appearing
+          throwsLeft: 999, // keep lobbing while on-screen
+          homeX: side
+        });
+        floatText(W * 0.5, H * 0.22, "YETI!", "#e2e8f0");
+        AudioFX.yetiHowl();
+      }
+
+      function throwSnowball(yeti) {
+        const ps = playerScreen();
+        const ex = laneX(yeti.x);
+        const ey = yeti.y - 8;
+        // aim at skier with light lead on lateral move
+        const leadX = ps.x + player.vx * 40;
+        const leadY = ps.y;
+        const dx = leadX - ex;
+        const dy = leadY - ey;
+        const dist = Math.max(40, Math.hypot(dx, dy));
+        // faster snowballs on higher levels
+        const spd = (210 + level * 28) * (0.9 + Math.random() * 0.2);
+        entities.push({
+          type: "snowball",
+          x: yeti.x, // unused for motion; keep for sort fallback
+          y: ey,
+          px: ex,
+          py: ey,
+          vx: (dx / dist) * spd,
+          vy: (dy / dist) * spd + scrollSpeed() * 0.25,
+          r: 11,
+          hit: true,
+          spin: rand(-8, 8),
+          rot: 0,
+          life: 3.5
+        });
+        // wind-up puff
+        burst(ex, ey - 10, "#f8fafc", 8, { spread: 60, up: 40, down: 20, sMin: 2, sMax: 5 });
+        yeti.phase += 0.4;
+        AudioFX.yetiGrowl();
+      }
+
+      function playerScreen() {
+        return {
+          x: laneX(player.x),
+          y: H * 0.72 - (player.air > 0 ? Math.sin(Math.min(1, player.air / 0.55) * Math.PI) * 36 : 0)
+        };
+      }
+
+      function triggerCrash(ex, ey, kind, sourceEnt) {
+        if (hitIFrames > 0 || !running || leveling) return false;
+        const ps = playerScreen();
+        crashes += 1;
+        hitIFrames = HIT_IFRAMES;
+        hitFlash = 1;
+        player.hurt = 0.55;
+        player.tilt = (ex < ps.x ? 1 : -1) * 0.4;
+        player.air = 0;
+        // shove skier off the obstacle so i-frames aren't spent stuck inside it
+        const push = ex < ps.x ? 0.08 : -0.08;
+        player.x = clamp(player.x + push, 0.02, 0.98);
+        player.vx = push * 8;
+        score = Math.max(0, score - 25);
+        burst(ex, ey, "#94a3b8", 14, { spread: 160, up: 180, down: 60 });
+        burst(ex, ey, kind === "rival" ? "#60a5fa" : kind === "snowball" ? "#e2e8f0" : "#166534", 10, { spread: 120, up: 140 });
+        burst(ps.x, ps.y, "#fb7185", 8, { spread: 100, up: 120 });
+        floatText(ps.x, ps.y - 40, "−25", "#fb7185");
+        const left = Math.max(0, MAX_HITS - crashes);
+        floatText(ps.x, ps.y - 66, left + " left", left <= 1 ? "#fb7185" : "#fbbf24");
+        stageWrap.classList.remove("shake");
+        void stageWrap.offsetWidth;
+        stageWrap.classList.add("shake");
+        const livesPill = livesEl.closest(".pill");
+        if (livesPill) {
+          livesPill.classList.remove("hurt");
+          void livesPill.offsetWidth;
+          livesPill.classList.add("hurt");
+        }
+        // one impact = one life — disable everything currently overlapping
+        neutralizeNearbyHazards(ps.x, ps.y, sourceEnt);
+        syncHud();
+        AudioFX.crash();
+        if (crashes >= MAX_HITS) endGame(false);
+        return true;
+      }
+
+      // Prevent tree clusters / stacked snowballs from burning all 3 lives in one scrape
+      function neutralizeNearbyHazards(px, py, sourceEnt) {
+        for (let i = entities.length - 1; i >= 0; i--) {
+          const e = entities[i];
+          if (e === sourceEnt) {
+            if (e.type === "snowball" || e.type === "rival") {
+              entities.splice(i, 1);
+            } else if (e.hit) {
+              e.hit = false; // tree / yeti body no longer lethal this pass
+            }
+            continue;
+          }
+          if (e.type === "snowball") {
+            if (!e.hit) continue;
+            if (Math.hypot(e.px - px, e.py - py) < e.r + 40) {
+              e.hit = false;
+              burst(e.px, e.py, "#e2e8f0", 6, { spread: 50, up: 40 });
+            }
+            continue;
+          }
+          if (!e.hit) continue;
+          if (e.type !== "tree" && e.type !== "rival" && e.type !== "yeti") continue;
+          const ex = laneX(e.x);
+          const pr = e.type === "rival" ? 20 : e.type === "yeti" ? e.r * 0.78 : e.r * 0.72;
+          if (Math.hypot(ex - px, e.y - py) < pr + 40) {
+            if (e.type === "rival") entities.splice(i, 1);
+            else e.hit = false;
+          }
+        }
+      }
+
+      function collect(ent) {
+        const ps = playerScreen();
+        score += ent.value || 0;
+        floatText(ps.x, ps.y - 36, "+" + (ent.value || 0), ent.type === "toyota" ? "#eb0a1e" : "#fbbf24");
+        if (ent.type === "toyota") {
+          burst(laneX(ent.x), ent.y, "#eb0a1e", 12, { spread: 100, up: 140 });
+          burst(laneX(ent.x), ent.y, "#fbbf24", 6, { spread: 80, up: 100 });
+          AudioFX.pickup();
+        } else {
+          burst(laneX(ent.x), ent.y, "#7dd3fc", 10, { spread: 90, up: 120 });
+        }
+        syncHud();
+      }
+
+      function completeLevel() {
+        if (leveling) return;
+        leveling = true;
+        finishHold = 1.4;
+        score += FINISH_BONUS + level * 25;
+        levelFlash = 1.6;
+        floatText(W * 0.5, H * 0.35, "RUN CLEAR", "#7dd3fc");
+        floatText(W * 0.5, H * 0.42, "+" + (FINISH_BONUS + level * 25), "#fbbf24");
+        burst(W * 0.5, H * 0.4, "#e2e8f0", 24, { spread: 200, up: 220, down: 40 });
+        syncHud();
+      }
+
+      function advanceAfterFinish() {
+        level += 1;
+        leveling = false;
+        finishHold = 0;
+        // small heal every 2 clears
+        if (level % 2 === 1 && crashes > 0) crashes = Math.max(0, crashes - 1);
+        resetRunState(true);
+        floatText(W * 0.5, H * 0.3, "LEVEL " + level, "#fbbf24");
+        syncHud();
+      }
+
+      function endGame(won) {
+        running = false;
+        AudioFX.stopContinuous();
+        screenEnd.classList.remove("hidden");
+        finalScoreEl.textContent = String(score);
+        endBadge.textContent = won ? "Podium finish" : "Wiped out";
+        resultMsg.textContent = won
+          ? "You cleared the mountain. Score locked — play again to beat it."
+          : ("Reached level " + level + " · " + clamp(Math.floor((progress / runLength) * 100), 0, 100) + "% down the run.");
+      }
+
+      function startGame() {
+        AudioFX.unlock();
+        screenStart.classList.add("hidden");
+        screenEnd.classList.add("hidden");
+        fullReset();
+        running = true;
+        wasAirborne = false;
+        lastT = performance.now(); // reset dt so first frame isn't a huge jump
+        AudioFX.restartBells();
+        // single shared rAF loop started at boot — do not stack another here
+      }
+
+      function update(dt) {
+        if (!running) return;
+        if (finishHold > 0) {
+          finishHold -= dt;
+          levelFlash = Math.max(0, levelFlash - dt);
+          AudioFX.updateSki({ onSnow: false, speedNorm: 0, turn: 0, running: false });
+          updateFx(dt);
+          if (finishHold <= 0) advanceAfterFinish();
+          return;
+        }
+
+        hitIFrames = Math.max(0, hitIFrames - dt);
+        hitFlash = Math.max(0, hitFlash - dt);
+        player.hurt = Math.max(0, player.hurt - dt);
+        levelFlash = Math.max(0, levelFlash - dt);
+        treeClusterCooldown = Math.max(0, treeClusterCooldown - dt);
+
+        const speed = scrollSpeed();
+        progress += speed * dt;
+        sceneryOff = (sceneryOff + speed * dt) % 120;
+
+        // steering
+        let steer = 0;
+        if (keys.left) steer -= 1;
+        if (keys.right) steer += 1;
+        if (pointerActive && pointerX != null) {
+          const target = clamp((pointerX - 36) / Math.max(1, W - 72), 0, 1);
+          steer = clamp((target - player.x) * 8, -1.4, 1.4);
+        }
+        const airSteer = player.air > 0 ? 0.7 : 1;
+        player.vx += steer * 2.6 * airSteer * dt;
+        player.vx *= Math.pow(0.05, dt); // friction-ish damp
+        player.x = clamp(player.x + player.vx * dt, 0.02, 0.98);
+        // body lean follows steer; skis yaw toward turn direction
+        const leanTarget = clamp((steer || player.vx * 0.55) * 0.55, -1, 1);
+        player.tilt += (leanTarget - player.tilt) * Math.min(1, dt * 9);
+        const skiTarget = clamp(
+          (steer * 0.7 + player.vx * 0.35 + player.tilt * 0.25) * 0.85,
+          -0.85,
+          0.85
+        );
+        // skis lead the body a bit when initiating a turn
+        player.skiAngle += (skiTarget - player.skiAngle) * Math.min(1, dt * 12);
+
+        if (player.air > 0) {
+          player.air -= dt;
+          if (player.air < 0) player.air = 0;
+        }
+        // jump / land one-shots
+        if (player.air > 0 && !wasAirborne) {
+          wasAirborne = true;
+        } else if (player.air <= 0 && wasAirborne) {
+          wasAirborne = false;
+          AudioFX.skiLand();
+        }
+
+        // continuous ski scrape: soft when straight, brighter carve when turning
+        const turnAmt = clamp(Math.abs(player.skiAngle) / 0.85, 0, 1);
+        const speedNorm = clamp(scrollSpeed() / (BASE_SPEED * 2.2), 0, 1);
+        AudioFX.updateSki({
+          onSnow: player.air <= 0.05,
+          speedNorm,
+          turn: turnAmt,
+          running: true
+        });
+
+        // trail
+        const ps = playerScreen();
+        if (player.air <= 0) {
+          trail.push({ x: ps.x, y: ps.y + 16, life: 0.45 });
+        }
+        for (let i = trail.length - 1; i >= 0; i--) {
+          trail[i].life -= dt;
+          trail[i].y += speed * dt * 0.35;
+          if (trail[i].life <= 0) trail.splice(i, 1);
+        }
+
+        // one yeti per level ~ mid-run
+        if (!yetiSpawned && progress > runLength * 0.32) {
+          spawnYeti();
+        }
+
+        // move entities toward player (down the screen)
+        for (let i = entities.length - 1; i >= 0; i--) {
+          const e = entities[i];
+
+          if (e.type === "snowball") {
+            e.px += e.vx * dt;
+            e.py += e.vy * dt;
+            e.vy += 40 * dt; // slight gravity arc
+            e.rot += e.spin * dt;
+            e.life -= dt;
+            e.y = e.py; // for painter sort
+            if (e.life <= 0 || e.py > H + 40 || e.px < -40 || e.px > W + 40) {
+              entities.splice(i, 1);
+              continue;
+            }
+            const sdx = e.px - ps.x;
+            const sdy = e.py - ps.y;
+            const sdist = Math.hypot(sdx, sdy);
+            // snowballs can hit in the air — jump timing still helps via position
+            if (e.hit && hitIFrames <= 0 && sdist < e.r + 16) {
+              if (triggerCrash(e.px, e.py, "snowball", e)) {
+                burst(e.px, e.py, "#e2e8f0", 14, { spread: 140, up: 120, down: 40 });
+                burst(e.px, e.py, "#7dd3fc", 8, { spread: 100, up: 80 });
+              }
+              // source snowball removed inside neutralize; ensure gone
+              if (entities[i] === e) entities.splice(i, 1);
+            }
+            continue;
+          }
+
+          e.y += speed * dt;
+          if (e.type === "rival") {
+            e.phase += dt * 2.2;
+            e.x += e.vx * dt + Math.sin(e.phase) * 0.08 * dt;
+            e.x = clamp(e.x, 0.08, 0.92);
+          }
+          if (e.type === "toyota") e.rot += e.spin * dt;
+
+          if (e.type === "yeti") {
+            e.phase += dt * 1.6;
+            // drift toward skier, keep to a side corridor
+            const track = clamp(player.x + Math.sin(e.phase) * 0.12, 0.12, 0.88);
+            e.x += (track - e.x) * Math.min(1, dt * 1.1);
+            e.throwCd -= dt;
+            // lob while approaching / on-screen above the skier
+            if (e.y > -20 && e.y < H * 0.62 && e.throwCd <= 0) {
+              throwSnowball(e);
+              // throw rate tightens with level
+              e.throwCd = clamp(1.35 - level * 0.08, 0.7, 1.35);
+            }
+          }
+
+          // off screen cleanup
+          if (e.y > H + 80) {
+            entities.splice(i, 1);
+            continue;
+          }
+
+          // collisions near player band
+          const ex = laneX(e.x);
+          const ey = e.y;
+          const dx = ex - ps.x;
+          const dy = ey - ps.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (e.type === "toyota" && dist < e.r + 18) {
+            collect(e);
+            entities.splice(i, 1);
+            continue;
+          }
+
+          if (e.type === "jump" && !e.used && dist < e.r + 14 && Math.abs(dy) < 28) {
+            e.used = true;
+            player.air = 0.7;
+            wasAirborne = true;
+            AudioFX.skiJump();
+            collect(e);
+            // slight lift boost on progress feel
+            continue;
+          }
+
+          if (e.hit && hitIFrames <= 0 && player.air <= 0.12) {
+            const pr = e.type === "rival" ? 20 : e.type === "yeti" ? e.r * 0.78 : e.r * 0.72;
+            if (dist < pr + 14) {
+              triggerCrash(ex, ey, e.type, e);
+              // rival removed in neutralize; skip further handling
+              continue;
+            } else if (dist < pr + 28 && e.type === "tree" && e.hit && !e._near) {
+              e._near = true;
+              score += NEAR_MISS_PTS;
+              floatText(ex, ey - 10, "+" + NEAR_MISS_PTS, "#a5f3fc");
+              syncHud();
+            }
+          }
+        }
+
+        // spawn
+        spawnAcc += dt;
+        const spawnEvery = clamp(0.55 / levelMul(), 0.28, 0.7);
+        while (spawnAcc >= spawnEvery) {
+          spawnAcc -= spawnEvery;
+          spawnAhead(rand(0.7, 1.35), false);
+        }
+
+        // finish
+        if (progress >= runLength) completeLevel();
+
+        updateFx(dt);
+        // snow
+        for (const s of snow) {
+          s.y += (s.sp + speed * 0.15) * dt;
+          s.x += s.drift * dt;
+          if (s.y > H) { s.y = -4; s.x = Math.random() * W; }
+          if (s.x < 0) s.x = W;
+          if (s.x > W) s.x = 0;
+        }
+
+        syncHud();
+      }
+
+      function updateFx(dt) {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.life -= dt;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vy += 280 * dt;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+        for (let i = floatTexts.length - 1; i >= 0; i--) {
+          const f = floatTexts[i];
+          f.life -= dt;
+          f.y += f.vy * dt;
+          if (f.life <= 0) floatTexts.splice(i, 1);
+        }
+      }
+
+      function drawBackground() {
+        // sky / snow slope gradient already in stage; paint piste
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, "#8ebddc");
+        g.addColorStop(0.35, "#d5e8f5");
+        g.addColorStop(1, "#f7fbfe");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // distant ridge
+        ctx.fillStyle = "rgba(40, 70, 100, 0.35)";
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.18);
+        ctx.quadraticCurveTo(W * 0.25, H * 0.08, W * 0.5, H * 0.16);
+        ctx.quadraticCurveTo(W * 0.75, H * 0.05, W, H * 0.14);
+        ctx.lineTo(W, 0);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+
+        // course edges (trees line abstract)
+        const edgePulse = sceneryOff;
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 14]);
+        ctx.lineDashOffset = -edgePulse * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(28, 0); ctx.lineTo(28, H);
+        ctx.moveTo(W - 28, 0); ctx.lineTo(W - 28, H);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // groom lines
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 1;
+        for (let i = -2; i < 14; i++) {
+          const y = ((i * 60 + sceneryOff) % (H + 60)) - 30;
+          ctx.beginPath();
+          ctx.moveTo(40, y);
+          ctx.lineTo(W - 40, y + 18);
+          ctx.stroke();
+        }
+      }
+
+      function drawTree(x, y, r) {
+        // shadow
+        ctx.fillStyle = "rgba(15, 23, 42, 0.12)";
+        ctx.beginPath();
+        ctx.ellipse(x, y + r * 0.55, r * 0.7, r * 0.22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // trunk
+        ctx.fillStyle = "#6b4423";
+        ctx.fillRect(x - r * 0.12, y + r * 0.1, r * 0.24, r * 0.45);
+        // foliage layers
+        const layers = [
+          { yo: -r * 0.55, rr: r * 0.95, c: "#14532d" },
+          { yo: -r * 0.2, rr: r * 0.8, c: "#166534" },
+          { yo: r * 0.1, rr: r * 0.62, c: "#15803d" }
+        ];
+        for (const L of layers) {
+          ctx.fillStyle = L.c;
+          ctx.beginPath();
+          ctx.moveTo(x, y + L.yo - L.rr);
+          ctx.lineTo(x + L.rr, y + L.yo + L.rr * 0.55);
+          ctx.lineTo(x - L.rr, y + L.yo + L.rr * 0.55);
+          ctx.closePath();
+          ctx.fill();
+        }
+        // snow cap
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.beginPath();
+        ctx.moveTo(x, y - r * 1.35);
+        ctx.lineTo(x + r * 0.35, y - r * 0.85);
+        ctx.lineTo(x - r * 0.35, y - r * 0.85);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawJump(x, y, used) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = used ? "rgba(125,211,252,0.25)" : "rgba(251, 191, 36, 0.9)";
+        ctx.beginPath();
+        ctx.moveTo(-34, 10);
+        ctx.quadraticCurveTo(-10, -18, 36, -8);
+        ctx.lineTo(36, 12);
+        ctx.lineTo(-34, 14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = used ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        if (!used) {
+          ctx.fillStyle = "#0f172a";
+          ctx.font = "bold 11px system-ui";
+          ctx.textAlign = "center";
+          ctx.fillText("JUMP", 0, 4);
+        }
+        ctx.restore();
+      }
+
+      function drawRival(e) {
+        const x = laneX(e.x);
+        const y = e.y;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.sin(e.phase) * 0.12);
+        // skis
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-12, 16); ctx.lineTo(4, 22);
+        ctx.moveTo(4, 16); ctx.lineTo(14, 22);
+        ctx.stroke();
+        // body
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 2, 11, 15, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        // helmet
+        ctx.fillStyle = "#f8fafc";
+        ctx.beginPath();
+        ctx.arc(2, -12, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(15,23,42,0.55)";
+        ctx.fillRect(-4, -12, 12, 4);
+        ctx.restore();
+      }
+
+      function drawToyota(e) {
+        const x = laneX(e.x);
+        const y = e.y;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(e.rot || 0);
+        const s = e.r * 2.1;
+        if (toyotaReady) {
+          ctx.drawImage(toyotaImg, -s / 2, -s / 2, s, s);
+        } else {
+          ctx.fillStyle = "#eb0a1e";
+          ctx.beginPath();
+          ctx.arc(0, 0, e.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 10px system-ui";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("T", 0, 1);
+        }
+        // sparkle ring
+        ctx.strokeStyle = "rgba(251,191,36,0.55)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawYeti(e) {
+        const x = laneX(e.x);
+        const y = e.y;
+        const bob = Math.sin(e.phase * 2) * 3;
+        ctx.save();
+        ctx.translate(x, y + bob);
+        // wind-up lean when about to throw
+        const winding = e.throwCd < 0.35 ? (0.35 - e.throwCd) * 1.2 : 0;
+        ctx.rotate(Math.sin(e.phase) * 0.06 + (e.x < 0.5 ? winding : -winding) * 0.15);
+
+        // shadow
+        ctx.fillStyle = "rgba(15, 23, 42, 0.18)";
+        ctx.beginPath();
+        ctx.ellipse(0, 28, 28, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // legs
+        ctx.fillStyle = "#e8eef5";
+        ctx.beginPath();
+        ctx.ellipse(-12, 18, 10, 14, -0.15, 0, Math.PI * 2);
+        ctx.ellipse(12, 18, 10, 14, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // body
+        const fur = ctx.createRadialGradient(-8, -10, 4, 0, 0, 40);
+        fur.addColorStop(0, "#f8fafc");
+        fur.addColorStop(0.6, "#e2e8f0");
+        fur.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = fur;
+        ctx.beginPath();
+        ctx.ellipse(0, -2, 30, 34, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // belly
+        ctx.fillStyle = "rgba(248, 250, 252, 0.9)";
+        ctx.beginPath();
+        ctx.ellipse(0, 6, 16, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // arms — throw pose
+        ctx.fillStyle = "#e2e8f0";
+        ctx.beginPath();
+        ctx.ellipse(-28, -4 - winding * 20, 11, 16, -0.5 - winding, 0, Math.PI * 2);
+        ctx.ellipse(28, -2, 11, 16, 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        // snowball in hand when winding
+        if (winding > 0.05) {
+          ctx.fillStyle = "#f1f5f9";
+          ctx.strokeStyle = "rgba(100,116,139,0.5)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(-30, -18 - winding * 24, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // head
+        ctx.fillStyle = "#f1f5f9";
+        ctx.beginPath();
+        ctx.ellipse(0, -36, 22, 20, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // horns / ear tufts
+        ctx.fillStyle = "#cbd5e1";
+        ctx.beginPath();
+        ctx.moveTo(-16, -48); ctx.lineTo(-22, -62); ctx.lineTo(-8, -52);
+        ctx.moveTo(16, -48); ctx.lineTo(22, -62); ctx.lineTo(8, -52);
+        ctx.fill();
+
+        // face
+        ctx.fillStyle = "#0f172a";
+        ctx.beginPath();
+        ctx.arc(-7, -38, 3.2, 0, Math.PI * 2);
+        ctx.arc(7, -38, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+        // angry brows
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-12, -44); ctx.lineTo(-2, -41);
+        ctx.moveTo(12, -44); ctx.lineTo(2, -41);
+        ctx.stroke();
+        // snarl
+        ctx.fillStyle = "#1e293b";
+        ctx.beginPath();
+        ctx.ellipse(0, -28, 7, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillRect(-5, -30, 3, 4);
+        ctx.fillRect(2, -30, 3, 4);
+
+        ctx.restore();
+      }
+
+      function drawSnowball(e) {
+        const x = e.px;
+        const y = e.py;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(e.rot || 0);
+        // soft shadow
+        ctx.fillStyle = "rgba(15,23,42,0.15)";
+        ctx.beginPath();
+        ctx.ellipse(2, 6, e.r * 0.9, e.r * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const g = ctx.createRadialGradient(-3, -3, 1, 0, 0, e.r);
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(0.55, "#e2e8f0");
+        g.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(71,85,105,0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // ice flecks
+        ctx.fillStyle = "rgba(125,211,252,0.7)";
+        ctx.beginPath();
+        ctx.arc(-3, -2, 2, 0, Math.PI * 2);
+        ctx.arc(4, 1, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawSki(ox, tipY, tailY, ang, edged) {
+        // one ski as a thick capsule rotated to ang (0 = pointed down-screen)
+        ctx.save();
+        ctx.translate(ox, (tipY + tailY) * 0.5);
+        ctx.rotate(ang);
+        const len = Math.abs(tailY - tipY) + 10;
+        const half = len * 0.5;
+        // shadow edge
+        ctx.strokeStyle = "rgba(15,23,42,0.25)";
+        ctx.lineWidth = 7;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(0, -half + 2);
+        ctx.lineTo(0, half);
+        ctx.stroke();
+        // ski top
+        ctx.strokeStyle = edged > 0 ? "#1e293b" : "#0f172a";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(0, -half);
+        ctx.lineTo(0, half);
+        ctx.stroke();
+        // tip accent
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -half);
+        ctx.lineTo(0, -half + 6);
+        ctx.stroke();
+        // binding mark
+        ctx.fillStyle = "#eb0a1e";
+        ctx.fillRect(-3, -3, 6, 7);
+        ctx.restore();
+      }
+
+      function drawPlayer() {
+        const ps = playerScreen();
+        const skiA = player.skiAngle;
+        const lean = player.tilt;
+        ctx.save();
+        ctx.translate(ps.x, ps.y);
+        // whole figure yaws with skis; body leans a bit more on edge
+        ctx.rotate(skiA * 0.92);
+        if (player.hurt > 0) ctx.globalAlpha = 0.45 + 0.55 * Math.sin(player.hurt * 40);
+
+        // skis underfoot — turn with skiAngle; slight independent edge / spread
+        const edge = skiA * 0.15;
+        const spread = 7 + Math.abs(skiA) * 3;
+        // left ski (slightly more open when turning left)
+        drawSki(-spread, 8, 26, edge * 0.35 - Math.abs(skiA) * 0.04, skiA);
+        // right ski
+        drawSki(spread, 8, 26, -edge * 0.35 + Math.abs(skiA) * 0.04, -skiA);
+
+        // ski tracks spark when edged hard
+        if (Math.abs(skiA) > 0.35 && player.air <= 0) {
+          ctx.globalAlpha = 0.35;
+          ctx.strokeStyle = "#94a3b8";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-spread - 2, 28);
+          ctx.lineTo(-spread - 6 - skiA * 8, 36);
+          ctx.moveTo(spread + 2, 28);
+          ctx.lineTo(spread + 6 - skiA * 8, 36);
+          ctx.stroke();
+          ctx.globalAlpha = player.hurt > 0 ? (0.45 + 0.55 * Math.sin(player.hurt * 40)) : 1;
+        }
+
+        // body - Toyota red suit; lean opposite to carve a bit for balance read
+        ctx.save();
+        ctx.rotate(lean * 0.28 - skiA * 0.12);
+        const body = ctx.createLinearGradient(-10, -20, 10, 20);
+        body.addColorStop(0, "#eb0a1e");
+        body.addColorStop(1, "#9f1239");
+        ctx.fillStyle = body;
+        ctx.beginPath();
+        ctx.ellipse(0, -2, 12, 16, lean * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // arms / poles — plant downhill side on turns
+        const poleL = 14 + Math.max(0, -skiA) * 8;
+        const poleR = 14 + Math.max(0, skiA) * 8;
+        ctx.strokeStyle = "#334155";
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(-9, -2);
+        ctx.lineTo(-18 - skiA * 6, poleL);
+        ctx.moveTo(9, -2);
+        ctx.lineTo(18 - skiA * 6, poleR);
+        ctx.stroke();
+        // pole baskets
+        ctx.fillStyle = "#64748b";
+        ctx.beginPath();
+        ctx.arc(-18 - skiA * 6, poleL, 2.5, 0, Math.PI * 2);
+        ctx.arc(18 - skiA * 6, poleR, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // helmet + head turns slightly into the turn
+        ctx.translate(skiA * 3, 0);
+        ctx.fillStyle = "#e2e8f0";
+        ctx.beginPath();
+        ctx.arc(2, -16, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#0ea5e9";
+        ctx.fillRect(-5, -17, 14, 5);
+        ctx.fillStyle = "rgba(14,165,233,0.65)";
+        ctx.fillRect(-4, -15, 12, 4);
+        ctx.restore();
+
+        if (player.air > 0) {
+          ctx.globalAlpha = 0.35;
+          ctx.strokeStyle = "#7dd3fc";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 8, 22 + (0.7 - player.air) * 10, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function draw() {
+        drawBackground();
+
+        // trails
+        for (const t of trail) {
+          ctx.fillStyle = `rgba(100, 140, 170, ${t.life * 0.35})`;
+          ctx.beginPath();
+          ctx.ellipse(t.x, t.y, 10, 3, 0.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // sort entities by y for painter
+        const sorted = entities.slice().sort((a, b) => a.y - b.y);
+        for (const e of sorted) {
+          if (e.type === "jump") drawJump(laneX(e.x), e.y, e.used);
+          else if (e.type === "tree") drawTree(laneX(e.x), e.y, e.r);
+          else if (e.type === "rival") drawRival(e);
+          else if (e.type === "toyota") drawToyota(e);
+          else if (e.type === "yeti") drawYeti(e);
+          else if (e.type === "snowball") drawSnowball(e);
+        }
+
+        drawPlayer();
+
+        // snow flakes
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        for (const s of snow) {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.s, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // particles
+        for (const p of particles) {
+          ctx.globalAlpha = clamp(p.life * 2, 0, 1);
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // float texts
+        ctx.textAlign = "center";
+        ctx.font = "bold 16px system-ui";
+        for (const f of floatTexts) {
+          ctx.globalAlpha = clamp(f.life * 1.4, 0, 1);
+          ctx.fillStyle = f.color;
+          ctx.fillText(f.text, f.x, f.y);
+        }
+        ctx.globalAlpha = 1;
+
+        // hit flash
+        if (hitFlash > 0) {
+          ctx.fillStyle = `rgba(251, 113, 133, ${hitFlash * 0.28})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // level banner
+        if (levelFlash > 0) {
+          ctx.fillStyle = `rgba(15, 23, 42, ${clamp(levelFlash, 0, 0.55)})`;
+          ctx.fillRect(0, H * 0.28, W, 54);
+          ctx.fillStyle = "#7dd3fc";
+          ctx.font = "bold 22px system-ui";
+          ctx.textAlign = "center";
+          ctx.fillText(leveling ? "RUN CLEAR!" : ("LEVEL " + level), W * 0.5, H * 0.28 + 34);
+        }
+
+        // run progress bar
+        ctx.fillStyle = "rgba(15,23,42,0.35)";
+        ctx.fillRect(16, 12, W - 32, 8);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(16, 12, (W - 32) * clamp(progress / runLength, 0, 1), 8);
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.strokeRect(16, 12, W - 32, 8);
+      }
+
+      function loop(t) {
+        const dt = Math.min(0.033, (t - lastT) / 1000 || 0.016);
+        lastT = t;
+        if (running) update(dt);
+        else updateFx(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // input
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "ArrowLeft" || e.code === "KeyA") { keys.left = true; e.preventDefault(); }
+        if (e.code === "ArrowRight" || e.code === "KeyD") { keys.right = true; e.preventDefault(); }
+        if ((e.code === "Space" || e.code === "Enter") && !running) {
+          if (!screenStart.classList.contains("hidden")) startGame();
+          else if (!screenEnd.classList.contains("hidden")) startGame();
+        }
+      });
+      window.addEventListener("keyup", (e) => {
+        if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+        if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+      });
+
+      function setPointer(clientX, active) {
+        pointerActive = active;
+        if (!active) { pointerX = null; return; }
+        const rect = canvas.getBoundingClientRect();
+        pointerX = ((clientX - rect.left) / rect.width) * W;
+      }
+      canvas.addEventListener("pointerdown", (e) => {
+        canvas.setPointerCapture(e.pointerId);
+        setPointer(e.clientX, true);
+      });
+      canvas.addEventListener("pointermove", (e) => {
+        if (pointerActive) setPointer(e.clientX, true);
+      });
+      canvas.addEventListener("pointerup", () => setPointer(0, false));
+      canvas.addEventListener("pointercancel", () => setPointer(0, false));
+
+      document.getElementById("btn-start").addEventListener("click", startGame);
+      document.getElementById("btn-again").addEventListener("click", startGame);
+      const muteBtn = document.getElementById("btn-mute");
+      muteBtn.addEventListener("click", () => {
+        AudioFX.unlock();
+        AudioFX.setMuted(!audioMuted);
+        muteBtn.textContent = audioMuted ? "🔇" : "🔊";
+        muteBtn.setAttribute("aria-label", audioMuted ? "Unmute sound" : "Mute sound");
+        if (!audioMuted && running) AudioFX.restartBells();
+      });
+
+      window.addEventListener("resize", resize);
+      resize();
+      initSnow();
+      // idle draw loop so start screen canvas looks alive
+      lastT = performance.now();
+      // seed idle scenery
+      progress = 0;
+      runLength = RUN_BASE;
+      for (let i = 0; i < 8; i++) spawnAhead(i * 0.15, true);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
