@@ -1,0 +1,4 @@
+# Scratch / export helpers (not needed at runtime)
+toyota-badge-dataurl.txt
+.DS_Store
+*.log
